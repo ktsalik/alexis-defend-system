@@ -45,7 +45,7 @@ Route::middleware('web')->group(function () {
         }
     
         // Verify reCAPTCHA token with Google
-        $recaptchaSecret = '6Lfp3QwrAAAAALNXwh4IKTzDjb-0G7jRrM8bNMmK';
+        $recaptchaSecret = config('services.recaptcha.secret_key');
         $recaptchaResponse = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptchaSecret}&response={$token}");
         $recaptchaData = json_decode($recaptchaResponse);
 
