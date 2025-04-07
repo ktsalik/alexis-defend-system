@@ -1,0 +1,38 @@
+{
+    "name": "tsal/alexis",
+    "description": "Defend system for Laravel",
+    "type": "library",
+    "version": "1.0.0",
+    "autoload": {
+        "psr-4": {
+            "Tsal\\Alexis\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tsal\\Alexis\\AlexisServiceProvider"
+            ]
+        }
+    },
+    "require": {
+        "php": "^8.0",
+        "laravel/framework": "^10.10",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "orchestra/testbench": "^7.0|^8.0"
+    },
+    "conflict": {
+        "laravel/fortify": "*",
+        "tymon/jwt-auth": "*"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Costas Tsalikides",
+            "email": "tsalikidhs@gmail.com"
+        }
+    ]
+}
