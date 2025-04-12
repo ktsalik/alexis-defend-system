@@ -31,7 +31,7 @@ class AlexisServiceProvider extends ServiceProvider
 
     protected function registerMiddleware(): void
     {
-        $paths = config('alexis.throttle.middleware_paths', ['*']);
+        $paths = config('alexis.middleware_paths', ['*']);
 
         if (in_array('*', $paths)) {
             $this->app['router']->pushMiddlewareToGroup('web', BlockBlacklistedIPs::class);
