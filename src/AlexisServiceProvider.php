@@ -31,9 +31,35 @@ class AlexisServiceProvider extends ServiceProvider
 
     protected function registerMiddleware(): void
     {
-        // $this->app['router']->aliasMiddleware('alexis.block', BlockBlacklistedIPs::class);
-        $this->app['router']->pushMiddlewareToGroup('web', BlockBlacklistedIPs::class);
-        $this->app['router']->pushMiddlewareToGroup('web', TrackVisitor::class);
+        $paths = config('alexis.throttle.middleware_paths', ['*']);
+
+        if (in_array('*', $paths)) {
+            $this->app['router']->pushMiddlewareToGroup('web', BlockBlacklistedIPs::class);
+            $this->app['router']->pushMiddlewareToGroup('web', TrackVisitor::class);
+        } else {
+            $this->app['router']->aliasMiddleware('alexis.block', BlockBlacklistedIPs::class);
+            $this->app['router']->aliasMiddleware('alexis.track', TrackVisitor::class);
+
+            // Register a route middleware wrapper for path-specific application
+            $this->app['router']->middlewareGroup('alexis.dynamic', [
+                BlockBlacklistedIPs::class,
+                TrackVisitor::class,
+            ]);
+
+            // Listen to route-matching and dynamically attach middleware
+            $this->app->booted(function () use ($paths) {
+                $this->app['router']->matched(function ($event) use ($paths) {
+                    $currentPath = $event->request->path();
+
+                    foreach ($paths as $path) {
+                        if (str_starts_with($currentPath, ltrim($path, '/'))) {
+                            $event->route->middleware('alexis.dynamic');
+                            break;
+                        }
+                    }
+                });
+            });
+        }
     }
 
     protected function loadResources(): void

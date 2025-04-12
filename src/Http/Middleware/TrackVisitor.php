@@ -11,7 +11,7 @@ class TrackVisitor
 {
     public function handle(Request $request, Closure $next)
     {
-        $excluded = ['alexis-challenge', 'alexis-verify', 'health-check'];
+        $excluded = ['alexis-challenge', 'alexis-verify', 'alexis-dashboard'];
         if (in_array($request->path(), $excluded)) {
             return $next($request);
         }

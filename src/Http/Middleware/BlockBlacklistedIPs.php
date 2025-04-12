@@ -20,7 +20,7 @@ class BlockBlacklistedIPs
         }
 
         $limiter = app(RateLimiter::class);
-        $requests_allowed_per_minute = 700;
+        $requests_allowed_per_minute = config('alexis.throttle.overall_requests_allowed_per_minute');
         if ($limiter->tooManyAttempts("block:{$ip}", $requests_allowed_per_minute)) { // 300 requests/minute
             BlacklistedIp::firstOrCreate(['ip_address' => $ip], ['reason' => "Rate limit exceeded ($requests_allowed_per_minute/minute was the limit)"]);
             return response()->json(['error' => 'Too many requests'], 429);

@@ -20,6 +20,6 @@ class AlexisInfoController
         return json_decode(
             file_get_contents(__DIR__.'/../../../composer.json'),
             true
-        )['version'] ?? '0.0.0';
+        )['version'] ?? '1.0.2-beta';
     }
 }
