@@ -2,7 +2,9 @@
     "name": "tsal/alexis",
     "description": "Defend system for Laravel",
     "type": "library",
-    "version": "1.0.2-beta",
+    "version": "v1.0.3-beta",
+    "minimum-stability": "beta",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Tsal\\Alexis\\": "src/"
