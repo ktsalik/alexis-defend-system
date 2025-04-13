@@ -8,16 +8,12 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 class TrustProxies extends Middleware
 {
     /**
-     * The trusted proxies for this application.
-     *
-     * @var array|string|null
+     * Trust all proxies (e.g. Cloudflare, Nginx).
      */
-    protected $proxies;
+    protected $proxies = '*';
 
     /**
-     * The headers that should be used to detect proxies.
-     *
-     * @var int
+     * Use forwarded headers to detect client info.
      */
     protected $headers =
         SymfonyRequest::HEADER_X_FORWARDED_FOR |
