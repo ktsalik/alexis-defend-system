@@ -16,7 +16,7 @@ class TrackVisitor
             return $next($request);
         }
 
-        $ip = $request->ip();
+        $ip = $this->getClientIp();
         
         // Log the request as "unresolved" by default
         AlexisLog::create([
@@ -66,5 +66,30 @@ class TrackVisitor
             ->where('created_at', '>', now()->subMinutes($lookbackMinutes))
             ->where('resolved', false)
             ->count() > $threshold;
+    }
+
+    private function getClientIp()
+    {
+        foreach ([
+            'HTTP_CLIENT_IP',
+            'HTTP_X_FORWARDED_FOR',
+            'HTTP_X_FORWARDED',
+            'HTTP_X_CLUSTER_CLIENT_IP',
+            'HTTP_FORWARDED_FOR',
+            'HTTP_FORWARDED',
+            'REMOTE_ADDR'
+        ] as $key) {
+            if (!empty($_SERVER[$key])) {
+                $ipList = explode(',', $_SERVER[$key]);
+                foreach ($ipList as $ip) {
+                    $ip = trim($ip);
+                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                        return $ip;
+                    }
+                }
+            }
         }
+
+        return request()->ip(); // fallback
+    }
 }
