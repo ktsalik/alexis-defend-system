@@ -71,7 +71,7 @@ Route::middleware('web')->group(function () {
     })->name('alexis.verify');
 });
 
-Route::middleware(['alexis.block', 'alexis.track', 'alexis.secret'])
+Route::middleware(['alexis.trust-proxies', 'alexis.block', 'alexis.track', 'alexis.secret'])
     ->prefix('admin/alexis')
     ->group(function () {
         Route::get('/', [AlexisDashboardController::class, 'index'])->name('alexis.index');
