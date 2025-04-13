@@ -48,6 +48,7 @@ class AlexisServiceProvider extends ServiceProvider
             $this->app['router']->middlewareGroup('alexis.dynamic', [
                 BlockBlacklistedIPs::class,
                 TrackVisitor::class,
+                TrustProxies::class,
             ]);
 
             $this->app->booted(function () use ($paths) {
