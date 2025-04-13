@@ -4,7 +4,7 @@
     <script type="text/javascript">
       var onloadCallback = function() {
         grecaptcha.render('html_element', {
-          sitekey: "{{ config('services.recaptcha.site_key') }}"
+          sitekey: "{{ config('alexis.recaptcha.site_key') }}"
         });
       };
     </script>
