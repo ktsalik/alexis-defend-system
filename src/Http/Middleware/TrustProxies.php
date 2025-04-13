@@ -3,7 +3,7 @@
 namespace Tsal\Alexis\Http\Middleware;
 
 use Illuminate\Http\Request;
-use Illuminate\Foundation\Http\Middleware\TrustProxies as Middleware;
+use Illuminate\Http\Middleware\TrustProxies as Middleware;
 
 class TrustProxies extends Middleware
 {
