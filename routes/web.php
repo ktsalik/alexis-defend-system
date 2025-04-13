@@ -26,7 +26,7 @@ Route::middleware('web')->group(function () {
         
         $request->session()->put('puzzle', [
             'answer' => $num1 + $num2,
-            'ip'     => $request->ip()
+            'ip'     => getClientIp()
         ]);
 
         return view('alexis::puzzle', [
@@ -47,21 +47,21 @@ Route::middleware('web')->group(function () {
         }
     
         // Verify reCAPTCHA token with Google
-        $recaptchaSecret = config('services.recaptcha.secret_key');
+        $recaptchaSecret = config('alexis.recaptcha.secret_key');
         $recaptchaResponse = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret={$recaptchaSecret}&response={$token}");
         $recaptchaData = json_decode($recaptchaResponse);
 
         // Check if verification was successful and that the score meets your threshold (e.g., 0.5)
         if (!$recaptchaData->success) {
             BlacklistedIp::firstOrCreate(
-                ['ip_address' => $request->ip()],
+                ['ip_address' => getClientIp()],
                 ['reason' => 'Failed verification']
             );
             abort(403, 'Verification failed. IP blacklisted.');
         }
     
         // Mark all previous requests from this IP as resolved
-        AlexisLog::where('ip_address', $request->ip())
+        AlexisLog::where('ip_address', getClientIp())
             ->where('resolved', false)
             ->update(['resolved' => true]);
     
@@ -71,7 +71,7 @@ Route::middleware('web')->group(function () {
     })->name('alexis.verify');
 });
 
-Route::middleware(['alexis.trust-proxies', 'alexis.block', 'alexis.track', 'alexis.secret'])
+Route::middleware(['alexis.block', 'alexis.track', 'alexis.secret'])
     ->prefix('admin/alexis')
     ->group(function () {
         Route::get('/', [AlexisDashboardController::class, 'index'])->name('alexis.index');
@@ -82,3 +82,28 @@ Route::middleware(['alexis.trust-proxies', 'alexis.block', 'alexis.track', 'alex
             return view('alexis-admin-app');
         })->where('catchall', '.*');
     });
+
+function getClientIp()
+{
+    foreach ([
+        'HTTP_CLIENT_IP',
+        'HTTP_X_FORWARDED_FOR',
+        'HTTP_X_FORWARDED',
+        'HTTP_X_CLUSTER_CLIENT_IP',
+        'HTTP_FORWARDED_FOR',
+        'HTTP_FORWARDED',
+        'REMOTE_ADDR'
+    ] as $key) {
+        if (!empty($_SERVER[$key])) {
+            $ipList = explode(',', $_SERVER[$key]);
+            foreach ($ipList as $ip) {
+                $ip = trim($ip);
+                if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+                    return $ip;
+                }
+            }
+        }
+    }
+
+    return request()->ip(); // fallback
+}
