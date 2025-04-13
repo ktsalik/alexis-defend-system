@@ -9,7 +9,7 @@ class AdminSecretCheck
 {
     public function handle(Request $request, Closure $next)
     {
-        $secret = $request->input('secret', 'acbd18db4cc2f85cedef654fccc4a4d8');
+        $secret = $request->input('secret', '5d41402abc4b2a76b9719d911017c592');
 
         if ($secret !== md5(config('alexis.secret'))) {
             abort(404);
