@@ -27,8 +27,8 @@ class TrackVisitor
             'resolved' => false
         ]);
 
-        if ($this->isSuspicious($request)) {
-            if ($this->isBannable($request)) {
+        if ($this->isSuspicious($ip)) {
+            if ($this->isBannable($ip)) {
                 $threshold = config('alexis.throttle.blacklist_after');
 
                 BlacklistedIp::firstOrCreate(
@@ -45,15 +45,15 @@ class TrackVisitor
         return $next($request);
     }
 
-    protected function isSuspicious(Request $request): bool
+    protected function isSuspicious($ip): bool
     {
-        return AlexisLog::where('ip_address', $request->ip())
+        return AlexisLog::where('ip_address', $ip)
             ->where('created_at', '>', now()->subMinute())
             ->where('resolved', false) // Only count unresolved requests
             ->count() > config('alexis.throttle.requests_per_minute');
     }
 
-    protected function isBannable(Request $request): bool
+    protected function isBannable($ip): bool
     {
         $threshold = config('alexis.throttle.blacklist_after');
         $lookbackMinutes = config('alexis.throttle.lookback_minutes', 5);
@@ -62,7 +62,7 @@ class TrackVisitor
             return false; // Never ban if threshold is misconfigured
         }
         
-        return AlexisLog::where('ip_address', $request->ip())
+        return AlexisLog::where('ip_address', $ip)
             ->where('created_at', '>', now()->subMinutes($lookbackMinutes))
             ->where('resolved', false)
             ->count() > $threshold;
