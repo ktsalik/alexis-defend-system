@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 use Tsal\Alexis\Http\Controllers\AlexisInfoController;
+use Tsal\Alexis\Http\Controllers\AlexisDashboardController;
 use Tsal\Alexis\Http\Middleware\BlockBlacklistedIPs;
 use Tsal\Alexis\Http\Middleware\TrackVisitor;
 use Tsal\Alexis\Models\BlacklistedIp;
@@ -68,3 +70,15 @@ Route::middleware('web')->group(function () {
         return redirect('/');
     })->name('alexis.verify');
 });
+
+Route::middleware(['alexis.block', 'alexis.track', 'alexis.secret'])
+    ->prefix('admin/alexis')
+    ->group(function () {
+        Route::get('/', [AlexisDashboardController::class, 'index'])->name('alexis.index');
+        Route::get('/requests', [AlexisDashboardController::class, 'get_requests'])->name('alexis.requests');
+        Route::get('/blocked-ips', [AlexisDashboardController::class, 'get_blocked_ips'])->name('alexis.blocked-ips');
+        
+        Route::any('{catchall}', function ($catchall) {
+            return view('alexis-admin-app');
+        })->where('catchall', '.*');
+    });
