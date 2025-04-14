@@ -32,8 +32,13 @@ class BlockBlacklistedIPs
 
         // Block common attack paths
         $suspiciousPaths = ['/wp-admin', '/.env', '/adminer.php'];
-        if (Str::contains($path, $suspiciousPaths)) {
-            BlacklistedIp::firstOrCreate(['ip_address' => $ip], ['reason' => "Suspicious path: {$path}"]);
+        $suspiciousRegex = '/(wp-admin|admin[-\/](ajax|post|footer|login)|fckeditor|atomlib|function\.php|themes-install|owlmailer|engine\.php|uploads\/media\.php|adminfuns\.php7)/i';
+
+        if (Str::contains($path, $suspiciousPaths) || preg_match($suspiciousRegex, $path)) {
+            BlacklistedIp::firstOrCreate(
+                ['ip_address' => $ip],
+                ['reason' => "Suspicious path: {$path}"]
+            );
             abort(403, 'Forbidden');
         }
 
