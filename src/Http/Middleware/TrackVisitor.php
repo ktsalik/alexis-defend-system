@@ -16,7 +16,7 @@ class TrackVisitor
             return $next($request);
         }
 
-        $ip = $this->getClientIp();
+        $ip = $this->get_client_ip();
         
         // Log the request as "unresolved" by default
         AlexisLog::create([
@@ -68,7 +68,7 @@ class TrackVisitor
             ->count() > $threshold;
     }
 
-    private function getClientIp()
+    private function get_client_ip()
     {
         foreach ([
             'HTTP_CLIENT_IP',

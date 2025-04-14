@@ -39,7 +39,7 @@ class AlexisServiceProvider extends ServiceProvider
         $paths = config('alexis.middleware_paths', ['*']);
 
         if (in_array('*', $paths)) {
-            $this->app['router']->pushMiddlewareToGroup('web', TrustProxies::class);
+            $this->app['router']->pushMiddlewareToGroup('web', TrackVisitor::class);
             $this->app['router']->pushMiddlewareToGroup('web', BlockBlacklistedIPs::class);
         } else {
             $this->app['router']->middlewareGroup('alexis.dynamic', [

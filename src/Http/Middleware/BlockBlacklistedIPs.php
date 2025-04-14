@@ -12,7 +12,7 @@ class BlockBlacklistedIPs
 {
     public function handle($request, Closure $next)
     {
-        $ip = $this->getClientIp();
+        $ip = $this->get_client_ip();
         $message = "If you think this is a mistake, please contact info@eltv.news.";
         
         if (Cache::has("blocked:{$ip}")) {
@@ -72,7 +72,7 @@ class BlockBlacklistedIPs
         return $next($request);
     }
 
-    private function getClientIp()
+    private function get_client_ip()
     {
         foreach ([
             'HTTP_CLIENT_IP',
