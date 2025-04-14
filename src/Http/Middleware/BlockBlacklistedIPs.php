@@ -47,8 +47,6 @@ class BlockBlacklistedIPs
             'admin-footer.php',
             'admin-ajax.php',
             'admin/uploads',
-            'admin',
-            'admin/login',
             'admin-post.php',
             'adminfuns.php7'
         ];
