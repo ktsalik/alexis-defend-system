@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Tsal\Alexis\Helpers\IpHelper;
 use Tsal\Alexis\Http\Controllers\AlexisInfoController;
 use Tsal\Alexis\Http\Controllers\AlexisDashboardController;
 use Tsal\Alexis\Http\Middleware\BlockBlacklistedIPs;
@@ -26,7 +27,7 @@ Route::middleware('web')->group(function () {
         
         $request->session()->put('puzzle', [
             'answer' => $num1 + $num2,
-            'ip'     => getClientIp()
+            'ip'     => IpHelper::getClientIp()
         ]);
 
         return view('alexis::puzzle', [
@@ -54,14 +55,14 @@ Route::middleware('web')->group(function () {
         // Check if verification was successful and that the score meets your threshold (e.g., 0.5)
         if (!$recaptchaData->success) {
             BlacklistedIp::firstOrCreate(
-                ['ip_address' => getClientIp()],
+                ['ip_address' => IpHelper::getClientIp()],
                 ['reason' => 'Failed verification']
             );
             abort(403, 'Verification failed. IP blacklisted.');
         }
     
         // Mark all previous requests from this IP as resolved
-        AlexisLog::where('ip_address', getClientIp())
+        AlexisLog::where('ip_address', IpHelper::getClientIp())
             ->where('resolved', false)
             ->update(['resolved' => true]);
     
@@ -77,35 +78,11 @@ Route::middleware(['alexis.block', 'alexis.track', 'alexis.secret'])
         Route::get('/', [AlexisDashboardController::class, 'index'])->name('alexis.index');
         Route::get('/requests', [AlexisDashboardController::class, 'get_requests'])->name('alexis.requests');
         Route::get('/blocked-ips', [AlexisDashboardController::class, 'get_blocked_ips'])->name('alexis.blocked-ips');
+        Route::get('/check-ip', [AlexisDashboardController::class, 'check_ip'])->name('alexis.check-ip');
+        Route::post('/block-ip', [AlexisDashboardController::class, 'block_ip'])->name('alexis.block-ip');
+        Route::post('/unblock-ip', [AlexisDashboardController::class, 'unblock_ip'])->name('alexis.unblock-ip');
         
         Route::any('{catchall}', function ($catchall) {
             return view('alexis-admin-app');
         })->where('catchall', '.*');
     });
-
-if (!function_exists('getClientIp')) {
-    function getClientIp()
-    {
-        foreach ([
-            'HTTP_CLIENT_IP',
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_FORWARDED',
-            'HTTP_X_CLUSTER_CLIENT_IP',
-            'HTTP_FORWARDED_FOR',
-            'HTTP_FORWARDED',
-            'REMOTE_ADDR'
-        ] as $key) {
-            if (!empty($_SERVER[$key])) {
-                $ipList = explode(',', $_SERVER[$key]);
-                foreach ($ipList as $ip) {
-                    $ip = trim($ip);
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                        return $ip;
-                    }
-                }
-            }
-        }
-
-        return request()->ip(); // fallback
-    }
-}

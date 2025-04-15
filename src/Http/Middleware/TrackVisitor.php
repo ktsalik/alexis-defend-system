@@ -11,6 +11,12 @@ class TrackVisitor
 {
     public function handle(Request $request, Closure $next)
     {
+        $secret = $request->input('secret', NULL);
+
+        if ($secret === md5(config('alexis.secret'))) {
+            return $next($request);
+        }
+
         $excluded = ['alexis-challenge', 'alexis-verify', 'alexis-dashboard'];
         if (in_array($request->path(), $excluded)) {
             return $next($request);
