@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->string('method')->nullable();
             $table->text('user_agent')->nullable();
             $table->timestamp('created_at')->useCurrent();
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
 
         Schema::table('alexis_logs', function (Blueprint $table) {

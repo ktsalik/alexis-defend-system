@@ -81,7 +81,13 @@ class BlockBlacklistedIPs
             'admin-ajax.php',
             'admin/uploads',
             'admin-post.php',
-            'adminfuns.php7'
+            'adminfuns.php7',
+            'admin/vendor/phpunit/phpunit/src/Util/PHP/eval-stdin.php',
+            'admin/error.log',
+            'admin/logs/errors.log',
+            'admin/logs/error.log',
+            'admin/errors.log',
+            'admin/log/error.log',
         ];
 
         if (in_array(ltrim($path, '/'), $suspiciousPaths)) {

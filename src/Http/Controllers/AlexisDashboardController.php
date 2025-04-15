@@ -22,6 +22,8 @@ class AlexisDashboardController
         $search_query = $request->input('search', NULL);
 
         $request_logs = DB::table('alexis_logs')
+            ->select('alexis_logs.*')
+            ->selectRaw('EXISTS (SELECT 1 FROM blacklisted_ips WHERE blacklisted_ips.ip_address = alexis_logs.ip_address) as is_blocked')
             ->when($search_query !== NULL && strlen($search_query) >= 2, function ($query) use ($search_query) {
                 $query->where(function ($subQuery) use ($search_query) {
                     $subQuery->where('path', 'LIKE', "%$search_query%")
@@ -59,6 +61,7 @@ class AlexisDashboardController
         $perPage = $request->input('per_page', 10);
 
         $blocked_ips = DB::table('blacklisted_ips')
+            ->select('*', DB::raw('1 as is_blocked'))
             ->orderBy('id', 'DESC')
             ->paginate($perPage);
 
