@@ -6,7 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Tsal\Alexis\Http\Middleware\{
     BlockBlacklistedIPs,
     TrackVisitor,
-    AdminSecretCheck
+    AdminSecretCheck,
+    AlexisAdminAuthenticate
 };
 use Tsal\Alexis\Console\Commands\AutoBlacklistIPs;
 
@@ -35,6 +36,7 @@ class AlexisServiceProvider extends ServiceProvider
         $this->app['router']->aliasMiddleware('alexis.block', BlockBlacklistedIPs::class);
         $this->app['router']->aliasMiddleware('alexis.track', TrackVisitor::class);
         $this->app['router']->aliasMiddleware('alexis.secret', AdminSecretCheck::class);
+        $this->app['router']->aliasMiddleware('alexis.admin-authenticate', AlexisAdminAuthenticate::class);
         
         $paths = config('alexis.middleware_paths', ['*']);
 

@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Tsal\Alexis\Helpers\IpHelper;
+use Illuminate\Support\Facades\DB;
 use Tsal\Alexis\Http\Controllers\AlexisInfoController;
 use Tsal\Alexis\Http\Controllers\AlexisDashboardController;
 use Tsal\Alexis\Http\Middleware\BlockBlacklistedIPs;
@@ -12,8 +13,8 @@ use Tsal\Alexis\Models\AlexisLog;
 
 // Routes that SHOULD be tracked
 Route::middleware(['web', TrackVisitor::class])->group(function () {
-    Route::get('/alexis', AlexisInfoController::class)
-        ->middleware(BlockBlacklistedIPs::class);
+    // Route::get('/alexis', AlexisInfoController::class)
+    //     ->middleware(BlockBlacklistedIPs::class);
     
     // Add other routes you want to track here
 });
@@ -72,17 +73,37 @@ Route::middleware('web')->group(function () {
     })->name('alexis.verify');
 });
 
-Route::middleware(['alexis.block', 'alexis.track', 'alexis.secret'])
+Route::middleware(['web', 'alexis.block', 'alexis.track', 'alexis.secret'])
     ->prefix('admin/alexis')
     ->group(function () {
-        Route::get('/', [AlexisDashboardController::class, 'index'])->name('alexis.index');
-        Route::get('/requests', [AlexisDashboardController::class, 'get_requests'])->name('alexis.requests');
-        Route::get('/blocked-ips', [AlexisDashboardController::class, 'get_blocked_ips'])->name('alexis.blocked-ips');
-        Route::get('/check-ip', [AlexisDashboardController::class, 'check_ip'])->name('alexis.check-ip');
-        Route::post('/block-ip', [AlexisDashboardController::class, 'block_ip'])->name('alexis.block-ip');
-        Route::post('/unblock-ip', [AlexisDashboardController::class, 'unblock_ip'])->name('alexis.unblock-ip');
+        // Route::get('/', [AlexisDashboardController::class, 'index'])->name('alexis.index');
+        Route::get('/', [AlexisInfoController::class, 'dashboard_or_login']);
+        Route::get('/login', function() {
+            return view('alexis::alexis-admin-app-login');
+        });
+        Route::post('/authenticate', [AlexisInfoController::class, 'authenticate']);
         
-        Route::any('{catchall}', function ($catchall) {
+        Route::get('/requests', [AlexisDashboardController::class, 'get_requests'])->name('alexis.requests')->middleware('alexis.admin-authenticate');
+        Route::get('/blocked-ips', [AlexisDashboardController::class, 'get_blocked_ips'])->name('alexis.blocked-ips')->middleware('alexis.admin-authenticate');
+        Route::get('/check-ip', [AlexisDashboardController::class, 'check_ip'])->name('alexis.check-ip')->middleware('alexis.admin-authenticate');
+        Route::post('/block-ip', [AlexisDashboardController::class, 'block_ip'])->name('alexis.block-ip')->middleware('alexis.admin-authenticate');
+        Route::post('/unblock-ip', [AlexisDashboardController::class, 'unblock_ip'])->name('alexis.unblock-ip')->middleware('alexis.admin-authenticate');
+        
+        Route::any('{catchall}', function (Request $request, $catchall) {
+            $user_id_connected = $request->session()->get('alexis-admin');
+
+            if ($user_id_connected !== null) {
+                $user = DB::table('users')->find($user_id_connected);
+
+                if ($user) {
+                    return view('alexis-admin-app');
+                } else {
+                    return response('', 404);
+                }
+            } else {
+                return response('', 404);
+            }
+
             return view('alexis-admin-app');
         })->where('catchall', '.*');
     });

@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Tsal\Alexis\Models\AlexisLog;
 use Tsal\Alexis\Models\BlacklistedIp;
+use Illuminate\Support\Facades\DB;
 
 class TrackVisitor
 {
@@ -15,6 +16,16 @@ class TrackVisitor
 
         if ($secret === md5(config('alexis.secret'))) {
             return $next($request);
+        }
+
+        $user_id_connected = $request->session()->get('alexis-admin');
+
+        if ($user_id_connected !== null) {
+            $user = DB::table('users')->find($user_id_connected);
+
+            if ($user) {
+                return $next($request);
+            }
         }
 
         $excluded = ['alexis-challenge', 'alexis-verify', 'alexis-dashboard'];
