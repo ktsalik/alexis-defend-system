@@ -14,7 +14,7 @@ class BlockBlacklistedIPs
     {
         $ip = $this->get_client_ip();
 
-        if (in_array($ip, $this->get_all_server_ips())) {
+        if ($this->has_server_secret_key()) {
             return $next($request);
         }
         
@@ -168,34 +168,10 @@ class BlockBlacklistedIPs
         return request()->ip(); // fallback
     }
 
-    // Returns array of the current server's IPs
-    function get_all_server_ips(): array
+    function has_server_secret_key(): bool
     {
-        $ips = [];
+        $headers = getallheaders();
 
-        // If running on localhost/dev environment — skip DNS resolution
-        if (in_array(PHP_SAPI, ['cli', 'cli-server']) || $_SERVER['SERVER_NAME'] === 'localhost') {
-            return ['127.0.0.1', '::1'];
-        }
-
-        // Try resolving hostname via DNS (production-safe)
-        $hostname = gethostname();
-        if ($hostname) {
-            $records = @dns_get_record($hostname, DNS_A + DNS_AAAA, $authns, $addtl);
-            foreach ($records as $r) {
-                if (isset($r['ip'])) {
-                    $ips[] = $r['ip'];
-                } elseif (isset($r['ipv6'])) {
-                    $ips[] = $r['ipv6'];
-                }
-            }
-        }
-
-        // Add $_SERVER['SERVER_ADDR'] if available
-        if (!empty($_SERVER['SERVER_ADDR'])) {
-            $ips[] = $_SERVER['SERVER_ADDR'];
-        }
-
-        return array_unique($ips);
+        return !empty($headers['X-Server-Auth']) && $headers['X-Server-Auth'] === md5(config('alexis.server_secret'));
     }
 }
