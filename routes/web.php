@@ -103,7 +103,5 @@ Route::middleware(['web', 'alexis.block', 'alexis.track', 'alexis.secret'])
             } else {
                 return response('', 404);
             }
-
-            return view('alexis-admin-app');
         })->where('catchall', '.*');
     });

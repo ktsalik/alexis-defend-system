@@ -18,9 +18,16 @@ class TrackVisitor
             return $next($request);
         }
 
-        $user_id_connected = $request->session()->get('alexis-admin');
+        $alexis_admin_id_connected = $request->session()->get('alexis-admin');
+        $user_id_connected = $request->session()->get('user');
 
-        if ($user_id_connected !== null) {
+        if ($alexis_admin_id_connected !== NULL || $user_id_connected !== NULL) {
+            $user = DB::table('users')->find($alexis_admin_id_connected);
+
+            if ($user) {
+                return $next($request);
+            }
+
             $user = DB::table('users')->find($user_id_connected);
 
             if ($user) {
@@ -28,7 +35,7 @@ class TrackVisitor
             }
         }
 
-        $excluded = ['alexis-challenge', 'alexis-verify', 'alexis-dashboard'];
+        $excluded = ['alexis-challenge', 'alexis-verify'];
         if (in_array($request->path(), $excluded)) {
             return $next($request);
         }
