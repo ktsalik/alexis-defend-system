@@ -14,7 +14,7 @@ class BlockBlacklistedIPs
     {
         $ip = $this->get_client_ip();
 
-        if ($this->has_server_secret_key()) {
+        if ($this->has_server_secret_key($request)) {
             return $next($request);
         }
         
@@ -168,10 +168,10 @@ class BlockBlacklistedIPs
         return request()->ip(); // fallback
     }
 
-    function has_server_secret_key(): bool
+    function has_server_secret_key($request): bool
     {
-        $headers = getallheaders();
+        $authHeader = $request->header('X-Server-Auth');
 
-        return !empty($headers['X-Server-Auth']) && $headers['X-Server-Auth'] === md5(config('alexis.server_secret'));
+        return !empty($authHeader) && $authHeader === md5(config('alexis.server_secret'));
     }
 }

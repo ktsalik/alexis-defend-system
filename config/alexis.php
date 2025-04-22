@@ -19,5 +19,5 @@ return [
         'secret_key' => env('RECAPTCHA_SECRET_KEY'),
     ],
     'secret' => env('ALEXIS_SECRET', 'foo'),
-    'server_secret' => env('ALEXIS_SERVER_SECRET', 'foo')
+    'server_secret' => env('ALEXIS_SERVER_SECRET', 'herebedragonspoorchoiceofwords')
 ];
