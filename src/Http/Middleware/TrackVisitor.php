@@ -123,8 +123,13 @@ class TrackVisitor
 
     function has_server_secret_key($request): bool
     {
-        $authHeader = $request->header('X-Server-Auth');
+        foreach ($request->headers->all() as $key => $values) {
+            if (strtolower($key) === 'x-server-auth') {
+                $authHeader = $values[0];
+                return $authHeader === md5(config('alexis.server_secret'));
+            }
+        }
 
-        return !empty($authHeader) && $authHeader === md5(config('alexis.server_secret'));
+        return false;
     }
 }
