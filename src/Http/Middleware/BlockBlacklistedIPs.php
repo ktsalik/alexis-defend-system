@@ -14,7 +14,7 @@ class BlockBlacklistedIPs
     {
         $ip = $this->get_client_ip();
 
-        if (!is_trusted_ip($ip)) {
+        if (!$this->is_trusted_ip($ip)) {
             http_response_code(404);
             header('Content-Type: text/plain');
             exit('Not Found');
@@ -155,7 +155,7 @@ class BlockBlacklistedIPs
         $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
 
         // Only trust headers if the request came from a trusted proxy
-        if (is_trusted_ip($remoteAddr)) {
+        if ($this->is_trusted_ip($remoteAddr)) {
             foreach ([
                 'HTTP_X_FORWARDED_FOR',
                 'HTTP_CLIENT_IP',
@@ -216,7 +216,7 @@ class BlockBlacklistedIPs
         ];
 
         // Include dynamic server IPs (self-calls)
-        foreach (get_all_server_ips() as $serverIp) {
+        foreach ($this->get_all_server_ips() as $serverIp) {
             $trustedCidrs[] = $serverIp;
         }
 
@@ -251,19 +251,29 @@ class BlockBlacklistedIPs
     }
 
     // Returns array of the current server's IPs
-    private function get_all_server_ips(): array
+    function get_all_server_ips(): array
     {
         $ips = [];
 
-        $records = dns_get_record(gethostname(), DNS_A + DNS_AAAA);
-        foreach ($records as $r) {
-            if (isset($r['ip'])) {
-                $ips[] = $r['ip'];
-            } elseif (isset($r['ipv6'])) {
-                $ips[] = $r['ipv6'];
+        // If running on localhost/dev environment — skip DNS resolution
+        if (in_array(PHP_SAPI, ['cli', 'cli-server']) || $_SERVER['SERVER_NAME'] === 'localhost') {
+            return ['127.0.0.1', '::1'];
+        }
+
+        // Try resolving hostname via DNS (production-safe)
+        $hostname = gethostname();
+        if ($hostname) {
+            $records = @dns_get_record($hostname, DNS_A + DNS_AAAA, $authns, $addtl);
+            foreach ($records as $r) {
+                if (isset($r['ip'])) {
+                    $ips[] = $r['ip'];
+                } elseif (isset($r['ipv6'])) {
+                    $ips[] = $r['ipv6'];
+                }
             }
         }
 
+        // Add $_SERVER['SERVER_ADDR'] if available
         if (!empty($_SERVER['SERVER_ADDR'])) {
             $ips[] = $_SERVER['SERVER_ADDR'];
         }
