@@ -92,28 +92,31 @@ class TrackVisitor
             ->count() > $threshold;
     }
 
-    private function get_client_ip()
+    // Securely get the real client IP
+    private function get_client_ip(): string
     {
-        foreach ([
-            'HTTP_CLIENT_IP',
-            'HTTP_X_FORWARDED_FOR',
-            'HTTP_X_FORWARDED',
-            'HTTP_X_CLUSTER_CLIENT_IP',
-            'HTTP_FORWARDED_FOR',
-            'HTTP_FORWARDED',
-            'REMOTE_ADDR'
-        ] as $key) {
-            if (!empty($_SERVER[$key])) {
-                $ipList = explode(',', $_SERVER[$key]);
-                foreach ($ipList as $ip) {
-                    $ip = trim($ip);
-                    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
-                        return $ip;
+        $remoteAddr = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+        // Only trust headers if the request came from a trusted proxy
+        if (is_trusted_ip($remoteAddr)) {
+            foreach ([
+                'HTTP_X_FORWARDED_FOR',
+                'HTTP_CLIENT_IP',
+                'HTTP_X_REAL_IP',
+                'HTTP_X_CLUSTER_CLIENT_IP',
+            ] as $key) {
+                if (!empty($_SERVER[$key])) {
+                    $ipList = explode(',', $_SERVER[$key]);
+                    foreach ($ipList as $ip) {
+                        $ip = trim($ip);
+                        if (filter_var($ip, FILTER_VALIDATE_IP)) {
+                            return $ip;
+                        }
                     }
                 }
             }
         }
 
-        return request()->ip(); // fallback
+        return $remoteAddr; // fallback, real IP seen by the server
     }
 }
