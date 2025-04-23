@@ -69,7 +69,7 @@ class AlexisServiceProvider extends ServiceProvider
     protected function loadResources(): void
     {
         $this->loadViewsFrom(__DIR__.'/resources/views', 'alexis');
-        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
+        // $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
     }
 
